@@ -1,0 +1,239 @@
+/* frontend/src/App.css */
+body {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.App {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.App-header {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 2px solid #333;
+    margin-bottom: 30px;
+}
+
+/* --- ESTILOS DEL FORMULARIO --- */
+.game-form-container {
+    background-color: #2a2a2a;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.game-form-container h2 {
+    color: #646cff; /* Color primario de Vite */
+    margin-top: 0;
+}
+
+.game-form-container label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.game-form-container input[type="text"],
+.game-form-container input[type="number"] {
+    width: 98%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #333;
+    color: #f0f0f0;
+}
+
+.game-form-container button {
+    background-color: #646cff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.2s;
+}
+
+.game-form-container button:hover:not(:disabled) {
+    background-color: #535bf2;
+}
+
+/* --- ESTILOS DE LA LISTA --- */
+.game-cards-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.game-card {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #646cff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.game-card h2 {
+    color: #646cff;
+    margin-top: 0;
+    font-size: 1.3em;
+}
+
+.game-actions button {
+    margin-right: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+
+.game-actions .edit-button {
+    background-color: #ff9900;
+    color: white;
+}
+
+.game-actions .delete-button {
+    background-color: #cc0000;
+    color: white;
+}
+.success {
+    color: #6aff64; /* Verde */
+    font-weight: bold;
+    margin-top: 10px;
+}
+.error {
+    color: #ff6464; /* Rojo */
+    font-weight: bold;
+    margin-top: 10px;
+}
+/* frontend/src/App.css */
+
+.navbar {
+    background-color: #111;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #646cff;
+}
+
+.nav-title {
+    color: #f0f0f0;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.nav-links a {
+    color: #f0f0f0;
+    text-decoration: none;
+    margin-left: 20px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-links a:hover {
+    background-color: #333;
+    color: #646cff;
+}
+/* frontend/src/App.css */
+
+/* --- ESTILOS DE NAVEGACIÓN (Ya existentes) --- */
+.navbar {
+    background-color: #111;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #646cff;
+}
+
+.nav-title {
+    color: #f0f0f0;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* Ocultar el botón hamburguesa por defecto (en escritorio) */
+.hamburger-menu {
+    display: none;
+}
+
+/* --- DISEÑO RESPONSIVE (Móvil) --- */
+@media (max-width: 768px) {
+    
+    .nav-links {
+        /* Ocultar en móvil por defecto */
+        display: none; 
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 60px; /* Debajo de la barra de navegación */
+        left: 0;
+        background-color: #222;
+        padding-bottom: 10px;
+        z-index: 1000;
+        border-top: 1px solid #646cff;
+    }
+    
+    /* Mostrar el menú cuando tiene la clase 'open' */
+    .nav-links.open {
+        display: flex; 
+    }
+
+    .nav-links a {
+        margin: 0;
+        padding: 12px 20px;
+        border-radius: 0;
+        border-bottom: 1px solid #333;
+        width: 100%;
+        text-align: left;
+    }
+
+    /* Mostrar el botón hamburguesa en móvil */
+    .hamburger-menu {
+        display: block;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+    
+    /* Ajustar el layout de las tarjetas en móvil */
+    .game-cards-wrapper {
+        flex-direction: column;
+    }
+
+    .game-card {
+        width: 90%; /* Ocupa casi todo el ancho */
+        margin: 10px auto;
+    }
+}
+/* frontend/src/App.css */
+
+.game-cover-image {
+    width: 100%;
+    max-height: 200px; /* Limitar la altura de la imagen */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 10px;
+}
+
+/* Ajuste de la tarjeta para dejar espacio para la imagen */
+.game-card {
+    display: flex;
+    flex-direction: column; /* Apila imagen, info y acciones */
+    /* ... (otros estilos de game-card siguen aquí) ... */
+}
