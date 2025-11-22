@@ -1,117 +1,149 @@
-// frontend/src/components/ListaJuegos.jsx (VERSIÓN FINAL Y CORREGIDA)
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import ReviewForm from './ReviewForm'; // <-- Importar el formulario
-import ReviewList from './ReviewList'; // <-- Importar la lista
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-// URL base de tu Backend
-const API_URL = 'http://localhost:3000/api/juegos';
+// NOTA: Se ha simplificado la URL de la API para evitar advertencias de compilación.
+// DEBES cambiar 'http://localhost:3000' por la URL de tu backend en producción (ej: Render).
+const API_URL = 'http://localhost:3000';
 
-// Asegúrate de que onEdit reciba el juego y la función navigate
-const ListaJuegos = ({ reloadKey, onEdit }) => { 
-    // Usamos useNavigate
-    const navigate = useNavigate();
-    
-    const [juegos, setJuegos] = useState([]);
+const ListaJuegos = ({ onSelectGame }) => {
+    const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [message, setMessage] = useState('');
-    const [reloadReviewsKey, setReloadReviewsKey] = useState(0); 
-
-    const fetchJuegos = async () => {
-        try {
-            const response = await axios.get(API_URL);
-            setJuegos(response.data); 
-            setLoading(false);
-        } catch (err) {
-            console.error("Error al cargar los juegos:", err);
-            setError("No se pudo conectar al servidor o cargar los datos.");
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        fetchJuegos();
-    }, [reloadKey]); 
+        fetchGames();
+    }, []);
 
-    const handleReviewSubmitted = () => {
-        setReloadReviewsKey(prevKey => prevKey + 1);
+    const fetchGames = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/api/games`);
+            if (!response.ok) {
+                throw new Error('Error al cargar los juegos');
+            }
+            const data = await response.json();
+            setGames(data);
+            setError(null);
+        } catch (err) {
+            console.error("Error fetching games:", err);
+            setError('No se pudieron cargar los juegos. Inténtalo de nuevo más tarde.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleDelete = async (juegoId, title) => {
-        if (!window.confirm(`¿Estás seguro de eliminar el juego "${title}"?`)) {
-            return; 
+    const handleDelete = async (id) => {
+        // En el futuro, reemplaza window.confirm con un modal de confirmación personalizado
+        if (!window.confirm('¿Estás seguro de que quieres eliminar este juego?')) {
+            return;
         }
 
         try {
-            await axios.delete(`${API_URL}/${juegoId}`);
-            setMessage(`✅ Juego "${title}" eliminado correctamente.`);
-            setJuegos(juegos.filter(j => j._id !== juegoId));
-        } catch (error) {
-            console.error("Error al eliminar el juego:", error.response || error);
-            setMessage('❌ Error al eliminar el juego.');
+            const response = await fetch(`${API_URL}/api/games/${id}`, {
+                method: 'DELETE',
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al eliminar el juego');
+            }
+
+            // Actualiza la lista de juegos después de eliminar
+            setGames(games.filter(game => game._id !== id));
+            console.log('Juego eliminado con éxito.'); 
+
+        } catch (err) {
+            console.error("Error deleting game:", err);
+            setError('No se pudo eliminar el juego. Verifica tu conexión y permisos.');
         }
     };
 
+    // Componente auxiliar para mostrar la calificación promedio
+    const AverageRating = ({ reviews }) => {
+        if (!reviews || reviews.length === 0) {
+            return <p className="average-rating-text">Sin Calificaciones</p>;
+        }
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const avg = (totalRating / reviews.length).toFixed(1);
 
-    if (loading) return <p>Cargando lista de juegos...</p>;
-    if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
+        // NOTA: En este punto, la calificación sigue usando estrellas por defecto. 
+        // La cambiaremos a barra de progreso en el Commit #5.
+        return (
+            <p className="average-rating-text">
+                Calificación: <span className="rating-value">{avg} ★</span> ({reviews.length} Reseñas)
+            </p>
+        );
+    };
+
+
+    if (loading) {
+        return <div className="loading-message">Cargando juegos...</div>;
+    }
+
+    if (error) {
+        return <div className="error-message">{error}</div>;
+    }
+
+    if (games.length === 0) {
+        return <div className="no-games-message">Aún no hay juegos en la lista. ¡Añade uno para empezar!</div>;
+    }
 
     return (
-        <div className="game-list-container">
-            <h1>Mis Juegos Rastreados ({juegos.length})</h1>
-            {message && <p className={message.startsWith('✅') ? 'success' : 'error'}>{message}</p>}
+        <div className="game-list-section">
+            <h2 className="section-title">Tu Colección de Juegos</h2>
             
-            {juegos.length === 0 ? (
-                <p>No hay juegos registrados. ¡Añade uno!</p>
-            ) : (
-                <div className="game-cards-wrapper">
-                    {juegos.map(juego => (
-                        <div key={juego._id} className="game-card">
-                            {juego.imageUrl && (
-                                <img 
-                                    // 🚨 CORRECCIÓN CRÍTICA: Se añade el servidor base (http://localhost:3000) 🚨
-                                    src={`http://localhost:3000${juego.imageUrl}`} 
-                                    alt={`Portada de ${juego.title}`} 
-                                    className="game-cover-image"
-                                />
-                            )}
-                            <div className="game-info">
-                                <h2>{juego.title}</h2>
-                                <p>Plataforma(s): <strong>{Array.isArray(juego.platform) ? juego.platform.join(', ') : juego.platform}</strong></p>
-                                <p>Horas Jugadas: <strong>{juego.hoursPlayed}h</strong></p>
-                                <p>Estado: {juego.completed ? '✅ Completado' : '🎮 Pendiente'}</p>
-                            </div>
+            {/* INICIO DEL CONTENEDOR DE CUADRÍCULA (CSS Grid) */}
+            {/* La clase 'game-grid-container' es CRÍTICA para que el CSS funcione */}
+            <div className="game-grid-container"> 
+                {games.map(game => (
+                    <div key={game._id} className="game-card">
+                        {/* Muestra la imagen si existe, o un placeholder si no */}
+                        {game.image && (
+                            <img 
+                                src={`${API_URL}/uploads/${game.image}`} 
+                                alt={`Imagen de ${game.title}`} 
+                                className="game-image" 
+                                onError={(e) => e.target.src = 'https://placehold.co/400x200/333333/FFFFFF?text=Sin+Imagen'} // Fallback
+                            />
+                        )}
+                        
+                        <div className="game-info">
+                            <h3 className="game-title">{game.title}</h3>
+                            <p className="game-genre">Género: {game.genre}</p>
+                            <p className="game-developer">Desarrollador: {game.developer}</p>
                             
-                            <div className="game-actions">
-                                {/* onEdit llama a la función en App.jsx y le pasa el juego y la navegación */}
-                                <button onClick={() => onEdit(juego, navigate)} className="edit-button">
+                            {/* Mostrar calificación promedio */}
+                            <AverageRating reviews={game.reviews} />
+
+                            <div className="card-actions">
+                                {/* Botón para ver reseña */}
+                                <Link 
+                                    to={`/review/${game._id}`} 
+                                    className="button review-button"
+                                >
+                                    Ver Reseñas
+                                </Link>
+                                
+                                {/* Botón para editar */}
+                                <button 
+                                    onClick={() => onSelectGame(game)} 
+                                    className="button edit-button"
+                                >
                                     Editar
                                 </button>
-                                <button onClick={() => handleDelete(juego._id, juego.title)} className="delete-button">
+                                
+                                {/* Botón para eliminar */}
+                                <button 
+                                    onClick={() => handleDelete(game._id)} 
+                                    className="button delete-button"
+                                >
                                     Eliminar
                                 </button>
                             </div>
-                            
-                            {/* SECCIÓN DE RESEÑAS */}
-                            <hr style={{ borderTop: '1px solid #444', margin: '15px 0' }} />
-                            
-                            {/* Formulario para añadir una nueva reseña */}
-                            <ReviewForm 
-                                juegoId={juego._id} 
-                                onReviewSubmitted={handleReviewSubmitted} 
-                            />
-                            
-                            {/* Lista de reseñas */}
-                            <ReviewList 
-                                juegoId={juego._id} 
-                                reloadReviews={reloadReviewsKey} 
-                            />
                         </div>
-                    ))}
-                </div>
-            )}
+                    </div>
+                ))}
+            </div>
+             {/* FIN DEL CONTENEDOR DE CUADRÍCULA */}
         </div>
     );
 };
