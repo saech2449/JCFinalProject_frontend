@@ -59,18 +59,33 @@ const ListaJuegos = ({ onSelectGame }) => {
         }
     };
 
-    // Componente auxiliar para mostrar la calificación promedio
+    // Componente auxiliar para mostrar la calificación promedio (BARRA DE PROGRESO)
     const AverageRating = ({ reviews }) => {
         if (!reviews || reviews.length === 0) {
             return <p className="average-rating-text">Sin Calificaciones</p>;
         }
+        
         const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
         const avg = (totalRating / reviews.length).toFixed(1);
+        
+        // Calculamos el porcentaje, asumiendo una escala de 5 (avg * 20%)
+        const percentage = (avg / 5) * 100; 
 
         return (
-            <p className="average-rating-text">
-                Calificación: <span className="rating-value">{avg} ★</span> ({reviews.length} Reseñas)
-            </p>
+            <div className="average-rating-container">
+                <p className="average-rating-text">
+                    Calificación: <span className="rating-value">{avg} / 5</span> ({reviews.length} Reseñas)
+                </p>
+                
+                {/* ESTRUCTURA DE LA BARRA DE PROGRESO */}
+                <div className="progress-bar-base">
+                    {/* El estilo in-line es CRÍTICO para pasar el ancho de la barra */}
+                    <div 
+                        className="progress-bar-fill" 
+                        style={{ width: `${percentage}%` }}
+                    ></div>
+                </div>
+            </div>
         );
     };
 

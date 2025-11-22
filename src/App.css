@@ -1,4 +1,4 @@
-/* --- RESET UNIVERSAL --- */
+/* --- 1. RESET UNIVERSAL (COMMIT 3) --- */
 /* CRÍTICO: Elimina márgenes y paddings predeterminados del navegador */
 * {
     margin: 0;
@@ -6,7 +6,7 @@
     box-sizing: border-box; /* Asegura que el padding no aumente el ancho */
 }
 
-/* --- ESTILOS HTML/BODY Y APP PRINCIPAL --- */
+/* --- 2. ESTILOS BASE Y APP PRINCIPAL (COMMIT 3) --- */
 html, body, #root, .App {
     min-height: 100vh;
     width: 100%;
@@ -14,7 +14,7 @@ html, body, #root, .App {
 
 body {
     font-family: 'Roboto', sans-serif; /* Fuente moderna */
-    background-color: #121212; /* Fondo oscuro más profundo */
+    background-color: #121212; /* Fondo oscuro */
     color: #f0f0f0; /* Color de texto claro */
     line-height: 1.6;
 }
@@ -24,22 +24,22 @@ body {
     flex-direction: column;
 }
 
-/* --- BARRA DE NAVEGACIÓN (NAVBAR) --- */
+/* --- 3. BARRA DE NAVEGACIÓN (NAVBAR) (COMMIT 3) --- */
 .navbar {
-    background-color: #000000; /* Fondo negro para la barra */
-    padding: 1rem 2rem; /* Más padding horizontal */
+    background-color: #000000; /* Fondo negro */
+    padding: 1rem 2rem; 
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7); /* Sombra más fuerte para destacar */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7); 
     width: 100%; /* CRÍTICO: Ocupa todo el ancho */
 }
 
 .nav-title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #7b83ff; /* Color de acento suave */
+    color: #7b83ff; /* Color de acento */
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -50,7 +50,7 @@ body {
 
 .nav-links {
     display: flex;
-    gap: 1.5rem; /* Espacio entre los enlaces */
+    gap: 1.5rem; 
 }
 
 .nav-links a {
@@ -64,37 +64,199 @@ body {
 
 .nav-links a:hover {
     background-color: #7b83ff;
-    color: #121212; /* Texto oscuro en el hover */
+    color: #121212; 
 }
 
-/* Ocultar el botón de hamburguesa por defecto en desktop */
 .hamburger-menu {
     display: none;
 }
 
-
-/* --- SECCIÓN PRINCIPAL (MAIN) --- */
 main {
-    flex-grow: 1; /* Permite que la sección principal ocupe el espacio restante */
-    padding: 2rem; /* Padding a los lados */
-    max-width: 1200px; /* Ancho máximo para el contenido */
-    margin: 0 auto; /* CRÍTICO: Centra el contenido */
-    width: 100%; /* Asegura que el main use el ancho del contenedor */
+    flex-grow: 1; 
+    padding: 2rem; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    width: 100%; 
     box-sizing: border-box; 
 }
 
+.button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
 
-/* --- MEDIA QUERIES (RESPONSIVO) --- */
+.review-button {
+    background-color: #7b83ff;
+    color: white;
+}
+
+.review-button:hover {
+    background-color: #646cff;
+    transform: translateY(-1px);
+}
+
+.edit-button {
+    background-color: #3399ff;
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #2a8ae6;
+    transform: translateY(-1px);
+}
+
+.delete-button {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #e63939;
+    transform: translateY(-1px);
+}
+
+
+/* --- 4. ESTILOS DE TARJETAS DE JUEGO (COMMIT 4) --- */
+
+/* Contenedor Grid para la lista de juegos (CLASE EN ESPAÑOL) */
+.juego-grid-container {
+    display: grid;
+    /* Por defecto, 3 columnas de igual tamaño */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 30px; /* Espacio entre las tarjetas */
+    margin-top: 30px;
+}
+
+/* Estilo de la tarjeta individual (CLASE EN ESPAÑOL) */
+.juego-card {
+    background-color: #1e1e1e; /* Fondo un poco más claro que el body */
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5); /* Sombra para darle profundidad */
+    display: flex; 
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #333; /* Borde sutil */
+}
+
+/* Efecto hover profesional */
+.juego-card:hover {
+    transform: translateY(-5px); /* Se levanta un poco */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7), 0 0 15px #7b83ff50; /* Sombra con acento azul */
+}
+
+.juego-card h3 {
+    color: #9fa4ff; /* Color de acento para el título */
+    margin-top: 0;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+/* Estilos para la imagen del juego */
+.juego-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.juego-genre, .juego-developer { 
+    margin-bottom: 5px;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto; /* Empuja los botones hacia abajo */
+    padding-top: 15px;
+    border-top: 1px solid #282828;
+}
+
+/* --- 5. BARRA DE CALIFICACIÓN (COMMIT 5) --- */
+
+/* Contenedor general de la calificación */
+.average-rating-container {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.average-rating-text {
+    font-size: 0.95rem;
+    color: #aaaaaa;
+    margin-bottom: 5px;
+}
+
+.rating-value {
+    font-weight: bold;
+    color: #9fa4ff; /* Color de acento */
+}
+
+/* Base de la barra (el fondo vacío) */
+.progress-bar-base {
+    width: 100%;
+    height: 10px;
+    background-color: #333;
+    border-radius: 5px;
+    overflow: hidden; 
+}
+
+/* Relleno de la barra (la parte animada) */
+.progress-bar-fill {
+    height: 100%;
+    background-image: linear-gradient(to right, #646cff, #9fa4ff); /* Gradiente */
+    border-radius: 5px;
+    
+    /* ANIMACIÓN CRÍTICA: La transición que hace que se "llene" al cargar */
+    transition: width 1.5s ease-out; 
+    
+    /* Se requiere que la propiedad 'width' se aplique en JSX para activar la transición */
+    width: 0; 
+}
+
+/* Keyframe y Animación de aparición de la tarjeta */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.juego-card {
+    /* Aplicamos una animación de aparición a la tarjeta */
+    animation: fadeIn 0.5s ease-in-out;
+    /* ... otros estilos de .juego-card ... */
+}
+
+
+/* --- 6. MEDIA QUERIES (RESPONSIVO) --- */
+@media (max-width: 1024px) {
+    /* Cuadrícula de 2 columnas en Tablet */
+    .juego-grid-container { 
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .navbar {
-        padding: 1rem 1rem; /* Menos padding en móviles */
+        padding: 1rem 1rem; 
     }
 
+    /* Mostrar menú de hamburguesa en móviles */
     .nav-links {
         flex-direction: column;
         background-color: #1a1a1a;
         position: absolute;
-        top: 64px; /* Ajustar según la altura de tu navbar */
+        top: 64px; 
         left: 0;
         width: 100%;
         padding: 1rem;
@@ -116,7 +278,7 @@ main {
     }
 
     .hamburger-menu {
-        display: block; /* Mostrar en móviles */
+        display: block; 
         background: none;
         border: none;
         color: white;
@@ -126,6 +288,27 @@ main {
     }
 
     main {
-        padding: 1rem; /* Menos padding en móviles */
+        padding: 1rem; 
+    }
+}
+
+@media (max-width: 600px) {
+    /* Cuadrícula de 1 columna en Móviles */
+    .juego-grid-container { 
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .card-actions {
+        flex-direction: column;
+    }
+    
+    .button {
+        width: 100%;
+    }
+
+    .no-juegos-message { 
+        padding: 1rem;
+        text-align: center;
     }
 }
