@@ -1,30 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios'; 
 
-// NOTA: Se ha simplificado la URL de la API para evitar advertencias de compilación.
-// DEBES cambiar 'http://localhost:3000' por la URL de tu backend en producción (ej: Render).
+// URL base de tu Backend
 const API_URL = 'http://localhost:3000';
 
-const ListaJuegos = ({ onSelectGame }) => {
-    // Variables renombradas: games -> juegos
+// 🚨 NUEVO: Custom Hook para obtener la calificación promedio 🚨
+const useGameRating = (juegoId) => {
+    const [averageRating, setAverageRating] = useState(null);
+    const [reviewCount, setReviewCount] = useState(0);
+
+    useEffect(() => {
+        if (!juegoId) return;
+
+        const fetchRating = async () => {
+            try {
+                // Llama al nuevo endpoint GET /api/reviews/average/:juegoId
+                const response = await axios.get(`${API_URL}/api/reviews/average/${juegoId}`);
+                setAverageRating(response.data.averageRating);
+                setReviewCount(response.data.reviewCount);
+            } catch (error) {
+                setAverageRating(null); 
+                setReviewCount(0);
+            }
+        };
+        fetchRating();
+    }, [juegoId]); 
+
+    return { averageRating, reviewCount };
+};
+
+// Componente para mostrar 5 estrellas
+const StarDisplay = ({ rating = 0 }) => {
+    const roundedRating = Math.round(parseFloat(rating)); 
+    return (
+        <div style={{ color: '#FFD700', fontSize: '1.2rem', margin: '5px 0' }}>
+            {[...Array(roundedRating)].map((_, i) => <span key={`filled-${i}`}>★</span>)}
+            {[...Array(5 - roundedRating)].map((_, i) => <span key={`empty-${i}`} style={{ color: '#808080' }}>★</span>)}
+        </div>
+    );
+};
+
+// 🚨 NUEVO: Componente Tarjeta para encapsular la lógica de calificación 🚨
+const GameCard = ({ juego, onEdit, handleDelete }) => {
+    const { averageRating, reviewCount } = useGameRating(juego._id);
+    const navigate = useNavigate(); 
+
+    return (
+        <div className={`juego-card ${juego.completed ? 'completed' : ''}`}>
+            <div className="card-image">
+                <img 
+                    src={juego.imageUrl || 'https://placehold.co/400x300/1e293b/ffffff?text=Juego'} 
+                    alt={juego.title} 
+                    onError={(e) => {e.target.onerror = null; e.target.src="https://placehold.co/400x300/1e293b/ffffff?text=Juego"}}
+                />
+            </div>
+            <div className="card-content">
+                <h3>{juego.title}</h3>
+                <p className="platform-tag">{juego.platform.join(', ')}</p>
+                <p className="hours-tag">{juego.hoursPlayed} horas jugadas</p>
+
+                {/* 🚨 AQUÍ SE MUESTRA EL PROMEDIO REAL 🚨 */}
+                {averageRating !== null && reviewCount > 0 ? (
+                    <>
+                        <StarDisplay rating={averageRating} />
+                        <small style={{ color: '#aaa', display: 'block', fontSize: '0.8rem' }}>
+                            {/* Muestra el número con un decimal */}
+                            {averageRating} ({reviewCount} reseñas)
+                        </small>
+                    </>
+                ) : (
+                    <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Sin reseñas</p>
+                )}
+                
+
+                <div className="card-actions">
+                    {/* 🚨 ENLACE A LA PÁGINA DE RESEÑAS (Ruta genérica) 🚨 */}
+                    <Link 
+                        to={`/reviews/${juego._id}`} 
+                        className="button review-button"
+                    >
+                        Ver Reseñas
+                    </Link>
+                    
+                    <button 
+                        onClick={() => onEdit(juego, navigate)} 
+                        className="button edit-button"
+                    >
+                        Editar
+                    </button>
+                    <button 
+                        onClick={() => handleDelete(juego._id)} 
+                        className="button delete-button"
+                    >
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ----------------------------------------------------------------------
+// Componente principal de ListaJuegos
+// ----------------------------------------------------------------------
+const ListaJuegos = ({ onEdit }) => {
+    const navigate = useNavigate(); // Necesario si no está en tu original
     const [juegos, setJuegos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        fetchJuegos(); // Función renombrada
-    }, []);
-
-    const fetchJuegos = async () => { // Función renombrada
+    const fetchJuegos = async () => { 
         setLoading(true);
         try {
-            // Se asume que el endpoint en el backend también fue renombrado a /api/juegos
-            const response = await fetch(`${API_URL}/api/juegos`); 
-            if (!response.ok) {
-                throw new Error('Error al cargar los juegos');
-            }
-            const data = await response.json();
-            setJuegos(data); // Estado actualizado
+            const response = await axios.get(`${API_URL}/api/juegos`); 
+            setJuegos(response.data);
             setError(null);
         } catch (err) {
             console.error("Error fetching juegos:", err);
@@ -34,130 +124,38 @@ const ListaJuegos = ({ onSelectGame }) => {
         }
     };
 
+    useEffect(() => {
+        fetchJuegos();
+    }, []);
+
+
     const handleDelete = async (id) => {
-        // En el futuro, reemplaza window.confirm con un modal de confirmación personalizado
-        if (!window.confirm('¿Estás seguro de que quieres eliminar este juego?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/api/juegos/${id}`, { // Endpoint renombrado
-                method: 'DELETE',
-            });
-            
-            if (!response.ok) {
-                throw new Error('Error al eliminar el juego');
+        if (window.confirm('¿Estás seguro de que quieres eliminar este juego?')) {
+            try {
+                await axios.delete(`${API_URL}/api/juegos/${id}`);
+                fetchJuegos(); // Recargar la lista después de eliminar
+            } catch (error) {
+                console.error("Error al eliminar juego:", error);
+                alert('Error al eliminar el juego.');
             }
-
-            // Actualiza la lista de juegos después de eliminar
-            setJuegos(juegos.filter(juego => juego._id !== id)); // Estado actualizado
-            console.log('Juego eliminado con éxito.'); 
-
-        } catch (err) {
-            console.error("Error deleting juego:", err);
-            setError('No se pudo eliminar el juego. Verifica tu conexión y permisos.');
         }
     };
 
-    // Componente auxiliar para mostrar la calificación promedio (BARRA DE PROGRESO)
-    const AverageRating = ({ reviews }) => {
-        if (!reviews || reviews.length === 0) {
-            return <p className="average-rating-text">Sin Calificaciones</p>;
-        }
-        
-        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-        const avg = (totalRating / reviews.length).toFixed(1);
-        
-        // Calculamos el porcentaje, asumiendo una escala de 5 (avg * 20%)
-        const percentage = (avg / 5) * 100; 
-
-        return (
-            <div className="average-rating-container">
-                <p className="average-rating-text">
-                    Calificación: <span className="rating-value">{avg} / 5</span> ({reviews.length} Reseñas)
-                </p>
-                
-                {/* ESTRUCTURA DE LA BARRA DE PROGRESO */}
-                <div className="progress-bar-base">
-                    {/* El estilo in-line es CRÍTICO para pasar el ancho de la barra */}
-                    <div 
-                        className="progress-bar-fill" 
-                        style={{ width: `${percentage}%` }}
-                    ></div>
-                </div>
-            </div>
-        );
-    };
-
-
-    if (loading) {
-        return <div className="loading-message">Cargando juegos...</div>;
-    }
-
-    if (error) {
-        return <div className="error-message">{error}</div>;
-    }
-
-    if (juegos.length === 0) {
-        return <div className="no-juegos-message">Aún no hay juegos en la lista. ¡Añade uno para empezar!</div>;
-    }
+    if (loading) return <p>Cargando lista de juegos...</p>;
+    if (error) return <p className="error">{error}</p>;
 
     return (
-        <div className="juego-list-section">
-            <h2 className="section-title">Tu Colección de Juegos</h2>
-            
-            {/* INICIO DEL CONTENEDOR DE CUADRÍCULA (CSS Grid) */}
+        <div className="juego-list-wrapper">
             <div className="juego-grid-container">
-                {juegos.map(juego => ( // Mapeo de 'juegos'
-                    <div key={juego._id} className="juego-card">
-                        {/* Muestra la imagen si existe, o un placeholder si no */}
-                        {juego.image && (
-                            <img 
-                                src={`${API_URL}/uploads/${juego.image}`} 
-                                alt={`Imagen de ${juego.title}`} 
-                                className="juego-image" 
-                                onError={(e) => e.target.src = 'https://placehold.co/400x200/333333/FFFFFF?text=Sin+Imagen'} // Fallback
-                            />
-                        )}
-                        
-                        <div className="juego-info">
-                            <h3 className="juego-title">{juego.title}</h3>
-                            <p className="juego-genre">Género: {juego.genre}</p>
-                            <p className="juego-developer">Desarrollador: {juego.developer}</p>
-                            
-                            {/* Mostrar calificación promedio */}
-                            <AverageRating reviews={juego.reviews} />
-
-                            <div className="card-actions">
-                                {/* Botón para ver reseña */}
-                                <Link 
-                                    to={`/review/${juego._id}`} 
-                                    className="button review-button"
-                                >
-                                    Ver Reseñas
-                                </Link>
-                                
-                                {/* Botón para editar */}
-                                <button 
-                                    onClick={() => onSelectGame(juego)} 
-                                    className="button edit-button"
-                                >
-                                    Editar
-                                </button>
-                                
-                                {/* Botón para eliminar */}
-                                <button 
-                                    onClick={() => handleDelete(juego._id)} 
-                                    className="button delete-button"
-                                >
-                                    Eliminar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                {juegos.map(juego => (
+                    <GameCard 
+                        key={juego._id} 
+                        juego={juego} 
+                        onEdit={onEdit} 
+                        handleDelete={handleDelete} 
+                    />
                 ))}
             </div>
-             {/* FIN DEL CONTENEDOR DE CUADRÍCULA */}
         </div>
     );
 };

@@ -1,12 +1,13 @@
-// frontend/src/App.jsx (Implementando React Router DOM y CORREGIDO)
+// frontend/src/App.jsx (Fragmento a actualizar en <Routes>)
 import { useState } from 'react';
-// Asegúrate de que useNavigate esté importado aquí
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom'; // Asegúrate de tener useParams
 import Formulario from './components/Formulario';
 import ListaJuegos from './components/ListaJuegos'; 
+import ReviewForm from './components/ReviewForm'; // Importa el formulario
+import ReviewList from './components/ReviewList';   // Importa la lista
 import './App.css'; 
 
-// Componente para la barra de navegación
+// Componente para la barra de navegación 
 const NavBar = () => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -39,20 +40,60 @@ const NavBar = () => {
     );
 };
 
+
+const ReviewPageWrapper = () => {
+    const { id } = useParams(); // id es el juegoId
+    // Estado para gestionar si estamos editando una reseña específica
+    const [reviewToEdit, setReviewToEdit] = useState(null); 
+    // Estado para forzar la recarga de la lista después de una acción
+    const [reloadKey, setReloadKey] = useState(0); 
+
+    const handleReviewAction = () => {
+        setReviewToEdit(null); // Sale del modo edición
+        setReloadKey(prev => prev + 1); // Fuerza la recarga de ReviewList
+    };
+
+    const handleEditReview = (review) => {
+        setReviewToEdit(review);
+        // Opcional: Desplazarse al formulario al iniciar la edición
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    return (
+        <div className="review-page">
+            <h2>Reseñas para el Juego ID: {id}</h2> 
+            
+            <ReviewForm 
+                juegoId={id} 
+                onReviewSubmitted={handleReviewAction} 
+                reviewToEdit={reviewToEdit} 
+                onCancelEdit={() => setReviewToEdit(null)}
+            />
+            
+            <ReviewList 
+                key={reloadKey} 
+                juegoId={id} 
+                reloadReviews={handleReviewAction} 
+                onEditReview={handleEditReview} 
+            />
+        </div>
+    );
+}
+// 🚨 FIN DEL COMPONENTE TEMPORAL 🚨
+
+
 function App() {
     const [reloadKey, setReloadKey] = useState(0); 
     const [editingGame, setEditingGame] = useState(null); 
-    
-    // Función para forzar la recarga de la lista y limpiar el formulario
+
     const handleGameAction = () => {
-        setReloadKey(prevKey => prevKey + 1); // Recarga ListaJuegos
-        setEditingGame(null); // Limpia el estado de edición
+        setReloadKey(prev => prev + 1);
+        setEditingGame(null); 
     };
 
-    // 🚨 CORRECCIÓN: Usamos 'juego' y 'navigate' 🚨
     const handleEdit = (juego, navigate) => {
-        setEditingGame(juego); // Establece el objeto 'juego' en el estado de edición
-        navigate('/add'); // Usa el navigate que le pasamos desde ListaJuegos
+        setEditingGame(juego); 
+        navigate('/add'); 
     };
 
     return (
@@ -62,7 +103,6 @@ function App() {
                 
                 <main>
                     <Routes>
-                        {/* Ruta principal: Muestra solo la Lista de Juegos */}
                         <Route 
                             path="/" 
                             element={
@@ -73,7 +113,6 @@ function App() {
                             } 
                         />
                         
-                        {/* Ruta para Añadir o Editar Juegos */}
                         <Route 
                             path="/add" 
                             element={
@@ -83,6 +122,10 @@ function App() {
                                 />
                             } 
                         />
+                        
+                        {/* 🚨 NUEVA RUTA DE RESEÑAS usando el componente temporal 🚨 */}
+                        <Route path="/reviews/:id" element={<ReviewPageWrapper />} />
+                        
                     </Routes>
                 </main>
             </div>

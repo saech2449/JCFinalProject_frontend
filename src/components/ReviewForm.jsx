@@ -1,6 +1,8 @@
 // frontend/src/components/ReviewForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+const API_URL = 'http://localhost:3000'; // Define API_URL aquí
 
 // Componente para manejar visualmente las estrellas
 const StarRating = ({ rating, setRating }) => {
@@ -11,7 +13,7 @@ const StarRating = ({ rating, setRating }) => {
                 return (
                     <span 
                         key={index} 
-                        style={{ color: starValue <= rating ? '#FFD700' : '#808080' }} // Dorado si está activa
+                        style={{ color: starValue <= rating ? '#FFD700' : '#808080' }} 
                         onClick={() => setRating(starValue)}
                     >
                         ★
@@ -22,10 +24,25 @@ const StarRating = ({ rating, setRating }) => {
     );
 };
 
-const ReviewForm = ({ juegoId, onReviewSubmitted }) => {
-    const [rating, setRating] = useState(0); // Calificación inicial (0)
+// 🚨 Se añaden los nuevos props: reviewToEdit y onCancelEdit 🚨
+const ReviewForm = ({ juegoId, onReviewSubmitted, reviewToEdit, onCancelEdit }) => {
+    const [rating, setRating] = useState(0); 
     const [comment, setComment] = useState('');
     const [message, setMessage] = useState('');
+
+    // 🚨 useEffect para precargar datos al editar 🚨
+    useEffect(() => {
+        if (reviewToEdit) {
+            setRating(reviewToEdit.rating);
+            setComment(reviewToEdit.comment);
+            setMessage(`Estás editando la reseña.`);
+        } else {
+            // Limpiar el formulario para un nuevo envío
+            setRating(0);
+            setComment('');
+            setMessage('');
+        }
+    }, [reviewToEdit]); 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,26 +54,39 @@ const ReviewForm = ({ juegoId, onReviewSubmitted }) => {
         }
 
         const reviewData = {
-            juego: juegoId, // El ID del juego que estamos reseñando
             rating: rating,
             comment: comment,
+            // Si el backend espera un campo 'user', se podría añadir aquí
         };
-
+        
         try {
-            await axios.post('http://localhost:3000/api/reviews', reviewData);
-            setMessage('✅ Reseña enviada con éxito.');
-            setRating(0); // Limpiar estrellas
-            setComment(''); // Limpiar comentario
-            onReviewSubmitted(); // Notifica al padre que debe recargar la lista de reseñas
+            if (reviewToEdit) {
+                // 🚨 Modo EDICIÓN: PUT a /api/reviews/:id 🚨
+                const reviewId = reviewToEdit._id;
+                await axios.put(`${API_URL}/api/reviews/${reviewId}`, reviewData);
+                setMessage('✅ Reseña actualizada con éxito.');
+                
+            } else {
+                // Modo CREACIÓN: POST a /api/reviews
+                reviewData.juego = juegoId; 
+                await axios.post(`${API_URL}/api/reviews`, reviewData);
+                setMessage('✅ Reseña enviada con éxito.');
+            }
+
+            // Limpiar formulario y notificar al padre
+            setRating(0); 
+            setComment(''); 
+            onReviewSubmitted(); // Dispara la recarga de reseñas en el padre
+            
         } catch (error) {
-            console.error("Error al enviar reseña:", error.response || error);
-            setMessage('❌ Error al enviar reseña. Revisa la consola.');
+            console.error("Error al enviar/actualizar reseña:", error.response?.data || error);
+            setMessage('❌ Error al procesar reseña. Revisa la consola.');
         }
     };
 
     return (
         <div className="review-form-container">
-            <h3>Tu Opinión</h3>
+            <h3>{reviewToEdit ? 'Editar tu Reseña' : 'Añadir Nueva Reseña'}</h3> 
             <form onSubmit={handleSubmit}>
                 <label>Calificación (1-5 Estrellas):</label>
                 <StarRating rating={rating} setRating={setRating} />
@@ -69,7 +99,20 @@ const ReviewForm = ({ juegoId, onReviewSubmitted }) => {
                     required
                 ></textarea>
                 
-                <button type="submit" style={{marginTop: '10px'}}>Enviar Reseña</button>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <button type="submit" style={{ flex: 1 }}>
+                        {reviewToEdit ? 'Guardar Cambios' : 'Enviar Reseña'}
+                    </button>
+                    {reviewToEdit && ( // Botón de cancelar visible solo en modo edición
+                        <button 
+                            type="button" 
+                            onClick={onCancelEdit} 
+                            style={{ flex: 1, backgroundColor: '#6c757d', border: 'none', cursor: 'pointer' }}
+                        >
+                            Cancelar Edición
+                        </button>
+                    )}
+                </div>
             </form>
             {message && <p className={message.startsWith('✅') ? 'success' : 'error'}>{message}</p>}
         </div>
