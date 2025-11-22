@@ -6,26 +6,28 @@ import { Link } from 'react-router-dom';
 const API_URL = 'http://localhost:3000';
 
 const ListaJuegos = ({ onSelectGame }) => {
-    const [games, setGames] = useState([]);
+    // Variables renombradas: games -> juegos
+    const [juegos, setJuegos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetchGames();
+        fetchJuegos(); // Función renombrada
     }, []);
 
-    const fetchGames = async () => {
+    const fetchJuegos = async () => { // Función renombrada
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/api/games`);
+            // Se asume que el endpoint en el backend también fue renombrado a /api/juegos
+            const response = await fetch(`${API_URL}/api/juegos`); 
             if (!response.ok) {
                 throw new Error('Error al cargar los juegos');
             }
             const data = await response.json();
-            setGames(data);
+            setJuegos(data); // Estado actualizado
             setError(null);
         } catch (err) {
-            console.error("Error fetching games:", err);
+            console.error("Error fetching juegos:", err);
             setError('No se pudieron cargar los juegos. Inténtalo de nuevo más tarde.');
         } finally {
             setLoading(false);
@@ -39,7 +41,7 @@ const ListaJuegos = ({ onSelectGame }) => {
         }
 
         try {
-            const response = await fetch(`${API_URL}/api/games/${id}`, {
+            const response = await fetch(`${API_URL}/api/juegos/${id}`, { // Endpoint renombrado
                 method: 'DELETE',
             });
             
@@ -48,11 +50,11 @@ const ListaJuegos = ({ onSelectGame }) => {
             }
 
             // Actualiza la lista de juegos después de eliminar
-            setGames(games.filter(game => game._id !== id));
+            setJuegos(juegos.filter(juego => juego._id !== id)); // Estado actualizado
             console.log('Juego eliminado con éxito.'); 
 
         } catch (err) {
-            console.error("Error deleting game:", err);
+            console.error("Error deleting juego:", err);
             setError('No se pudo eliminar el juego. Verifica tu conexión y permisos.');
         }
     };
@@ -65,8 +67,6 @@ const ListaJuegos = ({ onSelectGame }) => {
         const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
         const avg = (totalRating / reviews.length).toFixed(1);
 
-        // NOTA: En este punto, la calificación sigue usando estrellas por defecto. 
-        // La cambiaremos a barra de progreso en el Commit #5.
         return (
             <p className="average-rating-text">
                 Calificación: <span className="rating-value">{avg} ★</span> ({reviews.length} Reseñas)
@@ -83,41 +83,40 @@ const ListaJuegos = ({ onSelectGame }) => {
         return <div className="error-message">{error}</div>;
     }
 
-    if (games.length === 0) {
-        return <div className="no-games-message">Aún no hay juegos en la lista. ¡Añade uno para empezar!</div>;
+    if (juegos.length === 0) {
+        return <div className="no-juegos-message">Aún no hay juegos en la lista. ¡Añade uno para empezar!</div>;
     }
 
     return (
-        <div className="game-list-section">
+        <div className="juego-list-section">
             <h2 className="section-title">Tu Colección de Juegos</h2>
             
             {/* INICIO DEL CONTENEDOR DE CUADRÍCULA (CSS Grid) */}
-            {/* La clase 'game-grid-container' es CRÍTICA para que el CSS funcione */}
-            <div className="game-grid-container"> 
-                {games.map(game => (
-                    <div key={game._id} className="game-card">
+            <div className="juego-grid-container">
+                {juegos.map(juego => ( // Mapeo de 'juegos'
+                    <div key={juego._id} className="juego-card">
                         {/* Muestra la imagen si existe, o un placeholder si no */}
-                        {game.image && (
+                        {juego.image && (
                             <img 
-                                src={`${API_URL}/uploads/${game.image}`} 
-                                alt={`Imagen de ${game.title}`} 
-                                className="game-image" 
+                                src={`${API_URL}/uploads/${juego.image}`} 
+                                alt={`Imagen de ${juego.title}`} 
+                                className="juego-image" 
                                 onError={(e) => e.target.src = 'https://placehold.co/400x200/333333/FFFFFF?text=Sin+Imagen'} // Fallback
                             />
                         )}
                         
-                        <div className="game-info">
-                            <h3 className="game-title">{game.title}</h3>
-                            <p className="game-genre">Género: {game.genre}</p>
-                            <p className="game-developer">Desarrollador: {game.developer}</p>
+                        <div className="juego-info">
+                            <h3 className="juego-title">{juego.title}</h3>
+                            <p className="juego-genre">Género: {juego.genre}</p>
+                            <p className="juego-developer">Desarrollador: {juego.developer}</p>
                             
                             {/* Mostrar calificación promedio */}
-                            <AverageRating reviews={game.reviews} />
+                            <AverageRating reviews={juego.reviews} />
 
                             <div className="card-actions">
                                 {/* Botón para ver reseña */}
                                 <Link 
-                                    to={`/review/${game._id}`} 
+                                    to={`/review/${juego._id}`} 
                                     className="button review-button"
                                 >
                                     Ver Reseñas
@@ -125,7 +124,7 @@ const ListaJuegos = ({ onSelectGame }) => {
                                 
                                 {/* Botón para editar */}
                                 <button 
-                                    onClick={() => onSelectGame(game)} 
+                                    onClick={() => onSelectGame(juego)} 
                                     className="button edit-button"
                                 >
                                     Editar
@@ -133,7 +132,7 @@ const ListaJuegos = ({ onSelectGame }) => {
                                 
                                 {/* Botón para eliminar */}
                                 <button 
-                                    onClick={() => handleDelete(game._id)} 
+                                    onClick={() => handleDelete(juego._id)} 
                                     className="button delete-button"
                                 >
                                     Eliminar
